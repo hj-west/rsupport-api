@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:rsupport
+    username: rsupport
+    password: rsupport12!@
+    hikari:
+      maximum-pool-size: 4
+  h2:
+    console:
+      enabled: true
