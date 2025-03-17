@@ -1,3 +1,4 @@
+
 spring:
   datasource:
     url: jdbc:h2:mem:rsupport
@@ -8,3 +9,12 @@ spring:
   h2:
     console:
       enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+  sql:
+    init:
+      data-locations: classpath:database/data.sql
+      mode: always
+      platform: h2
