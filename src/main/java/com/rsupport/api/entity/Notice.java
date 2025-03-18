@@ -31,6 +31,7 @@ public class Notice {
     @Column(name = "END_AT", nullable = false)
     private LocalDateTime endAt;
 
+    @Builder.Default
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -41,7 +42,7 @@ public class Notice {
     @JoinColumn(name = "AUTHOR_ID", nullable = false)
     private User author;
 
-    @OneToMany(mappedBy = "NOTICE", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
 }
 
