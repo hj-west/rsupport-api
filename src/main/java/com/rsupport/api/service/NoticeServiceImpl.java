@@ -94,18 +94,12 @@ public class NoticeServiceImpl implements NoticeService {
         Optional.ofNullable(content).filter(s -> !s.isEmpty()).ifPresent(notice::setContent);
         Optional.ofNullable(startAt).ifPresent(notice::setStartAt);
         Optional.ofNullable(endAt).ifPresent(notice::setEndAt);
-        noticeRepository.save(notice);
 
-        if (files != null) {
-            // 기존 첨부파일 삭제
+        if (files != null && !files.isEmpty()) {
             attachmentRepository.deleteAll(notice.getAttachments());
-            notice.getAttachments().clear();
-
-            // 새로운 첨부파일 추가
             List<Attachment> attachments = files.stream()
                     .map(file -> new Attachment(null, file.getOriginalFilename(), fileService.upload(file), notice))
                     .collect(Collectors.toList());
-
             attachmentRepository.saveAll(attachments);
             notice.setAttachments(attachments);
         }
