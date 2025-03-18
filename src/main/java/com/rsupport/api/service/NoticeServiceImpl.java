@@ -1,5 +1,6 @@
 package com.rsupport.api.service;
 
+import com.rsupport.api.dto.NoticeDetailResponseDto;
 import com.rsupport.api.dto.NoticeListResponseDto;
 import com.rsupport.api.dto.enums.SearchType;
 import com.rsupport.api.entity.Attachment;
@@ -8,10 +9,13 @@ import com.rsupport.api.entity.User;
 import com.rsupport.api.repository.AttachmentRepository;
 import com.rsupport.api.repository.NoticeRepository;
 import com.rsupport.api.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +37,9 @@ public class NoticeServiceImpl implements NoticeService {
     private final AttachmentRepository attachmentRepository;
 
     private final FileService fileService;
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String VIEW_KEY_PREFIX = "notice:view:";
 
     @Override
     public Page<NoticeListResponseDto> getNotices(SearchType searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
@@ -42,6 +50,18 @@ public class NoticeServiceImpl implements NoticeService {
                         , LocalDateTime.now()
                         , pageable)
                 .map(NoticeListResponseDto::new);
+    }
+
+    @Override
+    public NoticeDetailResponseDto getNotice(Long id) {
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+
+        // Redis에서 조회수 증가
+        String viewKey = VIEW_KEY_PREFIX + id;
+        redisTemplate.opsForValue().increment(viewKey, 1);
+
+        return new NoticeDetailResponseDto(notice);
     }
 
     @Override
@@ -103,6 +123,34 @@ public class NoticeServiceImpl implements NoticeService {
 
             attachmentRepository.saveAll(attachments);
             notice.setAttachments(attachments);
+        }
+    }
+
+    /**
+     * 일정 주기로 Redis의 조회수를 DB로 반영하는 메서드
+     */
+    @Scheduled(fixedRate = 600000) // 10분마다 실행 (600,000ms = 10분)
+    @Transactional
+    public void syncViewCountsToDB() {
+        Set<String> keys = redisTemplate.keys(VIEW_KEY_PREFIX + "*");
+        if (keys.isEmpty()) return;
+
+        for (String key : keys) {
+            String noticeIdStr = key.replace(VIEW_KEY_PREFIX, "");
+            Long noticeId = Long.parseLong(noticeIdStr);
+
+            String redisViewCount = redisTemplate.opsForValue().get(key);
+            if (redisViewCount != null) {
+                Integer viewCount = Integer.valueOf(redisViewCount);
+
+                noticeRepository.findById(noticeId).ifPresent(notice -> {
+                    notice.setViewCount(notice.getViewCount() + viewCount);
+                    noticeRepository.save(notice);
+                });
+
+                // Redis에서 해당 조회수 키 삭제
+                redisTemplate.delete(key);
+            }
         }
     }
 }
