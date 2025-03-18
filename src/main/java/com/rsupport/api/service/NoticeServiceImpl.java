@@ -63,4 +63,27 @@ public class NoticeServiceImpl implements NoticeService {
             notice.setAttachments(attachments);
         }
     }
+
+    @Override
+    public void updateNotice(Long id, String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
+        Notice notice = noticeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
+        notice.setTitle(title);
+        notice.setContent(content);
+        notice.setStartAt(startAt);
+        notice.setEndAt(endAt);
+        noticeRepository.save(notice);
+        if (files != null) {
+            // 기존 첨부파일 삭제
+            attachmentRepository.deleteAll(notice.getAttachments());
+            notice.getAttachments().clear();
+
+            // 새로운 첨부파일 추가
+            List<Attachment> attachments = files.stream()
+                    .map(file -> new Attachment(null, file.getOriginalFilename(), fileService.upload(file), notice))
+                    .collect(Collectors.toList());
+
+            attachmentRepository.saveAll(attachments);
+            notice.setAttachments(attachments);
+        }
+    }
 }
