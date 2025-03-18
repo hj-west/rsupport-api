@@ -1,8 +1,6 @@
 package com.rsupport.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rsupport.api.dto.NoticeRequestDto;
 import com.rsupport.api.entity.Notice;
 import com.rsupport.api.entity.User;
 import com.rsupport.api.repository.NoticeRepository;
@@ -20,11 +18,9 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -162,7 +158,7 @@ public class NoticeIntegrationTest {
 
         MockMultipartFile file = new MockMultipartFile("files", "test.txt", "text/plain", "Test content".getBytes());
 
-        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/1")
+        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/" + notice.getId())
                         .file(file)
                         .param("title", "Title")
                         .param("content", "Content")
@@ -188,7 +184,7 @@ public class NoticeIntegrationTest {
                 .build();
 
         noticeRepository.save(notice);
-        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/1")
+        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/" + notice.getId())
                         .param("title", "")
                         .param("content", "")
                         .param("startAt", "")
@@ -225,7 +221,7 @@ public class NoticeIntegrationTest {
                 .build();
 
         noticeRepository.save(notice);
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/notices/1")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/notices/" + notice.getId())
                         .session(session))
                 .andExpect(status().isOk());
     }
