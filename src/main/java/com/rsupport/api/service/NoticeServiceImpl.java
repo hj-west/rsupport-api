@@ -35,7 +35,12 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public Page<NoticeListResponseDto> getNotices(SearchType searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return noticeRepository.searchNotices(searchType.toString(), keyword, from, to, LocalDateTime.now(), pageable)
+        return noticeRepository.searchNotices(Optional.ofNullable(searchType).map(Enum::toString).orElse(null)
+                        , keyword
+                        , from
+                        , to
+                        , LocalDateTime.now()
+                        , pageable)
                 .map(NoticeListResponseDto::new);
     }
 
