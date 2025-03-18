@@ -1,5 +1,6 @@
 package com.rsupport.api.service;
 
+import com.rsupport.api.dto.NoticeListResponseDto;
 import com.rsupport.api.entity.Attachment;
 import com.rsupport.api.entity.Notice;
 import com.rsupport.api.entity.User;
@@ -8,6 +9,8 @@ import com.rsupport.api.repository.NoticeRepository;
 import com.rsupport.api.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +31,12 @@ public class NoticeServiceImpl implements NoticeService {
     private final AttachmentRepository attachmentRepository;
 
     private final FileService fileService;
+
+    @Override
+    public Page<NoticeListResponseDto> getNotices(String searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        return noticeRepository.searchNotices(searchType, keyword, from, to, LocalDateTime.now(), pageable)
+                .map(NoticeListResponseDto::new);
+    }
 
     @Override
     public void saveNotice(String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
