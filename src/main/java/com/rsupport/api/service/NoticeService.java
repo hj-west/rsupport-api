@@ -17,4 +17,5 @@ public interface NoticeService {
     NoticeDetailResponseDto getNotice(Long id);
     void saveNotice(String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files);
     void updateNotice(Long id, String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files);
+    void deleteNotice(Long id);
 }

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -103,6 +104,21 @@ public class NoticeServiceImpl implements NoticeService {
             attachmentRepository.saveAll(attachments);
             notice.setAttachments(attachments);
         }
+    }
+
+    @Override
+    public void deleteNotice(Long id) {
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+
+        // 첨부 파일 삭제
+        notice.getAttachments().forEach(attachment -> {
+            fileService.delete(attachment.getFileUrl());
+        });
+        attachmentRepository.deleteAll(notice.getAttachments());
+
+        // 공지사항 삭제
+        noticeRepository.delete(notice);
     }
 
     /**
