@@ -159,4 +159,21 @@ class NoticeServiceTest {
 
         assertThrows(IllegalArgumentException.class, () ->  noticeService.updateNotice(2L, "Updated Title", "Updated Content", LocalDateTime.now(), LocalDateTime.now().plusDays(1), List.of()));
     }
+
+    @Test
+    @DisplayName("공지 삭제 테스트 1. 삭제 성공")
+    void testDeleteNotice_Success() {
+        when(noticeRepository.findById(1L)).thenReturn(Optional.of(testNotice));
+
+        assertDoesNotThrow(() -> noticeService.deleteNotice(1L));
+        verify(noticeRepository, times(1)).delete(testNotice);
+    }
+
+    @Test
+    @DisplayName("공지 삭제 테스트 2. 존재하지 않는 공지 삭제")
+    void testDeleteNotice_DoNotFoundNotice() {
+        when(noticeRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, ()-> noticeService.deleteNotice(2L));
+    }
 }
