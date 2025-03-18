@@ -57,7 +57,7 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public NoticeDetailResponseDto getNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
         redisTemplate.opsForValue().increment(VIEW_KEY_PREFIX + id, 1);
         return new NoticeDetailResponseDto(notice);
     }
