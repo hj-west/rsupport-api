@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,12 +49,7 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public Page<NoticeListResponseDto> getNotices(SearchType searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return noticeRepository.searchNotices(Optional.ofNullable(searchType).map(Enum::toString).orElse(null)
-                        , keyword
-                        , from
-                        , to
-                        , LocalDateTime.now()
-                        , pageable)
+        return noticeRepository.searchNotices(Optional.ofNullable(searchType).map(Enum::toString).orElse(null), keyword, from, to, LocalDateTime.now(), pageable)
                 .map(NoticeListResponseDto::new);
     }
 
@@ -61,11 +57,7 @@ public class NoticeServiceImpl implements NoticeService {
     public NoticeDetailResponseDto getNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
-
-        // Redis에서 조회수 증가
-        String viewKey = VIEW_KEY_PREFIX + id;
-        redisTemplate.opsForValue().increment(viewKey, 1);
-
+        redisTemplate.opsForValue().increment(VIEW_KEY_PREFIX + id, 1);
         return new NoticeDetailResponseDto(notice);
     }
 
@@ -94,7 +86,8 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public void updateNotice(Long id, String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
-        Notice notice = noticeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
 
         // 수정기능엔 @NotBlank 가 적용되지 않으므로 null체크를 통해 비어있으면 기존값으로 세팅되도록 설정
         Optional.ofNullable(title).filter(s -> !title.isEmpty()).ifPresent(notice::setTitle);
