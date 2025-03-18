@@ -117,19 +117,13 @@ public class NoticeServiceImpl implements NoticeService {
         for (String key : keys) {
             String noticeIdStr = key.replace(VIEW_KEY_PREFIX, "");
             Long noticeId = Long.parseLong(noticeIdStr);
-
-            String redisViewCount = redisTemplate.opsForValue().get(key);
-            if (redisViewCount != null) {
-                Integer viewCount = Integer.valueOf(redisViewCount);
-
-                noticeRepository.findById(noticeId).ifPresent(notice -> {
-                    notice.setViewCount(notice.getViewCount() + viewCount);
-                    noticeRepository.save(notice);
-                });
-
-                // Redis에서 해당 조회수 키 삭제
-                redisTemplate.delete(key);
-            }
+            Integer viewCount = Integer.valueOf(Objects.requireNonNull(redisTemplate.opsForValue().get(key)));
+            noticeRepository.findById(noticeId).ifPresent(notice -> {
+                notice.setViewCount(notice.getViewCount() + viewCount);
+                noticeRepository.save(notice);
+            });
+            // Redis에서 해당 조회수 키 삭제
+            redisTemplate.delete(key);
         }
     }
 }
