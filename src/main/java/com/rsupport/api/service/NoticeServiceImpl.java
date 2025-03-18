@@ -63,6 +63,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
+    @Transactional
     public void saveNotice(String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
         User user = userRepository.findById(getCurrentUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
@@ -86,25 +87,26 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
+    @Transactional
     public void updateNotice(Long id, String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
 
-        // 수정기능엔 @NotBlank 가 적용되지 않으므로 null체크를 통해 비어있으면 기존값으로 세팅되도록 설정
         Optional.ofNullable(title).filter(s -> !s.isEmpty()).ifPresent(notice::setTitle);
         Optional.ofNullable(content).filter(s -> !s.isEmpty()).ifPresent(notice::setContent);
         Optional.ofNullable(startAt).ifPresent(notice::setStartAt);
         Optional.ofNullable(endAt).ifPresent(notice::setEndAt);
 
         if (files != null && !files.isEmpty()) {
-            attachmentRepository.deleteAll(notice.getAttachments());
+            // 기존 첨부파일 컬렉션의 참조를 유지한 채 내용을 교체
+            notice.getAttachments().clear(); // 기존 첨부파일 삭제(삭제쿼리 실행)
             List<Attachment> attachments = files.stream()
                     .map(file -> new Attachment(null, file.getOriginalFilename(), fileService.upload(file), notice))
-                    .collect(Collectors.toList());
-            attachmentRepository.saveAll(attachments);
-            notice.setAttachments(attachments);
+                    .toList();
+            notice.getAttachments().addAll(attachments); // 기존 컬렉션에 추가
         }
     }
+
 
     @Override
     public void deleteNotice(Long id) {
