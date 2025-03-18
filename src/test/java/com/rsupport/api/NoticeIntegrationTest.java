@@ -1,5 +1,8 @@
 package com.rsupport.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.rsupport.api.dto.NoticeRequestDto;
 import com.rsupport.api.entity.Notice;
 import com.rsupport.api.entity.User;
 import com.rsupport.api.repository.NoticeRepository;
@@ -11,12 +14,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +42,10 @@ public class NoticeIntegrationTest {
     private MockHttpSession session;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
 
     @BeforeEach
     void setUp() {
@@ -102,5 +112,35 @@ public class NoticeIntegrationTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/notices/9999")
                         .session(session))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("공지 등록 API 테스트 1. 정상 등록")
+    void testCreateNotice_Success() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("files", "test.txt", "text/plain", "Test content".getBytes());
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/notices")
+                        .file(file)
+                        .param("title", "Title")
+                        .param("content", "Content")
+                        .param("startAt", LocalDateTime.now().toString())
+                        .param("endAt", LocalDateTime.now().plusDays(1).toString())
+                        .session(session)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
+    }
+
+
+    @Test
+    @DisplayName("공지 등록 API 테스트 2. 필수데이터 누락")
+    void testCreateNotice_InvalidRequest() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/notices")
+                        .param("title", "")
+                        .param("content", "")
+                        .param("startAt", "")
+                        .param("endAt", "")
+                        .session(session)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest());
     }
 }
