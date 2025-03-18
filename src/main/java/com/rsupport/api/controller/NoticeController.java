@@ -1,5 +1,6 @@
 package com.rsupport.api.controller;
 
+import com.rsupport.api.dto.NoticeDetailResponseDto;
 import com.rsupport.api.dto.NoticeListResponseDto;
 import com.rsupport.api.dto.NoticeRequestDto;
 import com.rsupport.api.dto.enums.SearchType;
@@ -46,6 +47,16 @@ class NoticeController {
                                                                   @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         return ResponseEntity.ok(noticeService.getNotices(searchType, keyword, from, to, pageable));
+    }
+
+    /**
+     * 공지사항 상세조회 API 생성
+     * @param noticeId 공지사항 id
+     * @return ResponseEntity<NoticeDetailResponseDto>
+     */
+    @GetMapping("/{noticeId}")
+    public ResponseEntity<NoticeDetailResponseDto> getNotice(@PathVariable String noticeId) {
+        return ResponseEntity.ok(noticeService.getNotice(Long.valueOf(noticeId)));
     }
 
     /**
