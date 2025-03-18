@@ -90,8 +90,8 @@ public class NoticeServiceImpl implements NoticeService {
                 .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
 
         // 수정기능엔 @NotBlank 가 적용되지 않으므로 null체크를 통해 비어있으면 기존값으로 세팅되도록 설정
-        Optional.ofNullable(title).filter(s -> !title.isEmpty()).ifPresent(notice::setTitle);
-        Optional.ofNullable(content).filter(s -> !content.isEmpty()).ifPresent(notice::setContent);
+        Optional.ofNullable(title).filter(s -> !s.isEmpty()).ifPresent(notice::setTitle);
+        Optional.ofNullable(content).filter(s -> !s.isEmpty()).ifPresent(notice::setContent);
         Optional.ofNullable(startAt).ifPresent(notice::setStartAt);
         Optional.ofNullable(endAt).ifPresent(notice::setEndAt);
         noticeRepository.save(notice);
