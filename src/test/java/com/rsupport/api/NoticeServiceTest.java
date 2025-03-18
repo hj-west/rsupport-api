@@ -141,7 +141,7 @@ class NoticeServiceTest {
         lenient().when(noticeRepository.findById(1L)).thenReturn(Optional.of(testNotice));
         when(noticeRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> noticeService.getNotice(2L));
+        assertThrows(IllegalArgumentException.class, () -> noticeService.getNotice(2L));
     }
 
     @Test
@@ -182,7 +182,7 @@ class NoticeServiceTest {
     @Test
     @DisplayName("공지 테스트 1. 수정, 조회, 삭제 시 파라미터(noticeId)가 null로 전달될때")
     void testNoticeApi_NoticeIdIsNull() {
-        assertThrows(EntityNotFoundException.class, () -> noticeService.getNotice(null));
+        assertThrows(IllegalArgumentException.class, () -> noticeService.getNotice(null));
         assertThrows(IllegalArgumentException.class, () ->  noticeService.updateNotice(null, "Updated Title", "Updated Content", LocalDateTime.now(), LocalDateTime.now().plusDays(1), List.of()));
         assertThrows(IllegalArgumentException.class, () -> noticeService.deleteNotice(null));
     }
