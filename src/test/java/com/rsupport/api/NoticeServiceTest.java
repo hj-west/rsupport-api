@@ -1,5 +1,6 @@
 package com.rsupport.api;
 
+import com.rsupport.api.dto.NoticeDetailResponseDto;
 import com.rsupport.api.dto.NoticeRequestDto;
 import com.rsupport.api.entity.Notice;
 import com.rsupport.api.entity.User;
@@ -18,16 +19,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NoticeServiceTest {
@@ -46,6 +49,12 @@ class NoticeServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
     private NoticeServiceImpl noticeService;
@@ -88,7 +97,7 @@ class NoticeServiceTest {
 
     @Test
     @DisplayName("공지 저장 테스트 2. 세션에 사용자 정보가 없음")
-    void testSaveNotice_doNotFindUserIdInSession() {
+    void testSaveNotice_DoNotFindUserIdInSession() {
         Mockito.lenient().when(session.getAttribute("userId")).thenReturn(1L);
 
         NoticeRequestDto requestDto = new NoticeRequestDto("New Title", "New Content",
@@ -101,7 +110,7 @@ class NoticeServiceTest {
 
     @Test
     @DisplayName("공지 저장 테스트 2. 세션의 사용자 정보를 바탕으로 사용자를 찾을 수 없음")
-    void testSaveNotice_doNotFoundUser() {
+    void testSaveNotice_DoNotFoundUser() {
         Mockito.lenient().when(session.getAttribute("userId")).thenReturn(2L);
         Mockito.lenient().when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
 
@@ -111,5 +120,27 @@ class NoticeServiceTest {
         assertThrows(IllegalArgumentException.class, () -> noticeService.saveNotice(
                 requestDto.getTitle(), requestDto.getContent(), requestDto.getStartAt(), requestDto.getEndAt(), requestDto.getFiles()
         ));
+    }
+
+    @Test
+    @DisplayName("공지 조회 테스트 1. 조회 성공")
+    void testGetNotice_Success() {
+        when(noticeRepository.findById(1L)).thenReturn(Optional.of(testNotice));
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations); // Redis Mock 설정
+        when(valueOperations.increment(anyString(), anyLong())).thenReturn(1L); // 조회수 증가 처리 Mocking
+
+        NoticeDetailResponseDto response = noticeService.getNotice(1L);
+        assertNotNull(response);
+        assertEquals("Test Title", response.getTitle());
+    }
+
+    @Test
+    @DisplayName("공지 조회 테스트 2. 존재하지 않는 공지 조회")
+    void testGetNotice_DoNotFoundNotice() {
+        lenient().when(noticeRepository.findById(1L)).thenReturn(Optional.of(testNotice));
+        when(noticeRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> noticeService.getNotice(2L));
     }
 }
