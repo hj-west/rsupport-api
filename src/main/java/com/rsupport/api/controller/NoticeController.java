@@ -70,15 +70,8 @@ class NoticeController {
      */
     @PostMapping(consumes = { "multipart/form-data" })
     public ResponseEntity<String> createNotice(@ModelAttribute @Validated(RegisterRequestValidationGroup.class) NoticeRequestDto request) {
-        try {
-            noticeService.saveNotice(request.getTitle(), request.getContent(), request.getStartAt(), request.getEndAt(), request.getFiles());
-            return ResponseEntity.status(HttpStatus.CREATED).body("공지사항 저장을 성공했습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-
+        noticeService.saveNotice(request.getTitle(), request.getContent(), request.getStartAt(), request.getEndAt(), request.getFiles());
+        return ResponseEntity.ok("공지사항 저장 성공");
     }
 
     /**
@@ -88,12 +81,8 @@ class NoticeController {
      * @return ResponseEntity<String>
      */
     @PutMapping(path = "/{noticeId}", consumes = { "multipart/form-data" })
-    public ResponseEntity<String> updateNotice(@ModelAttribute @Valid NoticeRequestDto request, @PathVariable String noticeId) {
-        try {
-            noticeService.updateNotice(Long.valueOf(noticeId), request.getTitle(), request.getContent(), request.getStartAt(), request.getEndAt(), request.getFiles());
-            return ResponseEntity.status(HttpStatus.CREATED).body("공지사항 수정을 성공했습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    public ResponseEntity<String> updateNotice(@ModelAttribute @Valid NoticeRequestDto request, @PathVariable Long noticeId) {
+        noticeService.updateNotice(noticeId, request.getTitle(), request.getContent(), request.getStartAt(), request.getEndAt(), request.getFiles());
+        return ResponseEntity.ok("공지사항 수정 성공");
     }
 }
