@@ -1,10 +1,12 @@
 package com.rsupport.api.controller;
 
 import com.rsupport.api.dto.NoticeRequestDto;
+import com.rsupport.api.dto.validation.RegisterRequestValidationGroup;
 import com.rsupport.api.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +24,7 @@ class NoticeController {
      * @return ResponseEntity<String>
      */
     @PostMapping(consumes = { "multipart/form-data" })
-    public ResponseEntity<String> createNotice(@ModelAttribute NoticeRequestDto request) {
+    public ResponseEntity<String> createNotice(@ModelAttribute @Validated(RegisterRequestValidationGroup.class) NoticeRequestDto request) {
         try {
             noticeService.saveNotice(request.getTitle(), request.getContent(), request.getStartAt(), request.getEndAt(), request.getFiles());
             return ResponseEntity.status(HttpStatus.CREATED).body("공지사항 저장을 성공했습니다.");

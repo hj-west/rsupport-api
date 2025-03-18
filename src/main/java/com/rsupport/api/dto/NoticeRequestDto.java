@@ -1,6 +1,7 @@
 package com.rsupport.api.dto;
 
 
+import com.rsupport.api.dto.validation.RegisterRequestValidationGroup;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,15 +15,15 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class NoticeRequestDto {
-    @NotBlank
+    @NotBlank(groups = RegisterRequestValidationGroup.class)
     private String title;
 
-    @NotBlank
+    @NotBlank(groups = RegisterRequestValidationGroup.class)
     private String content;
 
-    @NotBlank
+    @NotBlank(groups = RegisterRequestValidationGroup.class)
     private LocalDateTime startAt;
-    @NotBlank
+    @NotBlank(groups = RegisterRequestValidationGroup.class)
     private LocalDateTime endAt;
 
     private Long authorId;
