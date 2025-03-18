@@ -210,4 +210,31 @@ public class NoticeIntegrationTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("공지 삭제 API 테스트 1. 삭제 성공")
+    void testDeleteNotice_Success() throws Exception {
+        Notice notice = Notice.builder()
+                .title("Test Title")
+                .content("Test Content")
+                .author(userRepository.findById(1L).orElse(new User(1L, "admin")))
+                .startAt(LocalDateTime.now().minusDays(3))
+                .endAt(LocalDateTime.now().plusDays(3))
+                .attachments(new ArrayList<>())
+                .viewCount(0)
+                .build();
+
+        noticeRepository.save(notice);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/notices/1")
+                        .session(session))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("공지 삭제 API 테스트 2. 잘못된 notice id")
+    void testDeleteNotice_NotFound() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/notices/9999")
+                        .session(session))
+                .andExpect(status().isBadRequest());
+    }
 }
