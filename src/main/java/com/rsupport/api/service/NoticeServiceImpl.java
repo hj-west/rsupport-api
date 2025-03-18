@@ -1,6 +1,7 @@
 package com.rsupport.api.service;
 
 import com.rsupport.api.dto.NoticeListResponseDto;
+import com.rsupport.api.dto.enums.SearchType;
 import com.rsupport.api.entity.Attachment;
 import com.rsupport.api.entity.Notice;
 import com.rsupport.api.entity.User;
@@ -33,8 +34,8 @@ public class NoticeServiceImpl implements NoticeService {
     private final FileService fileService;
 
     @Override
-    public Page<NoticeListResponseDto> getNotices(String searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return noticeRepository.searchNotices(searchType, keyword, from, to, LocalDateTime.now(), pageable)
+    public Page<NoticeListResponseDto> getNotices(SearchType searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        return noticeRepository.searchNotices(searchType.toString(), keyword, from, to, LocalDateTime.now(), pageable)
                 .map(NoticeListResponseDto::new);
     }
 
