@@ -143,4 +143,20 @@ class NoticeServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> noticeService.getNotice(2L));
     }
+
+    @Test
+    @DisplayName("공지 수정 테스트 1. 수정 성공")
+    void testUpdateNotice_Success() {
+        when(noticeRepository.findById(1L)).thenReturn(Optional.of(testNotice));
+
+        assertDoesNotThrow(() -> noticeService.updateNotice(1L, "Updated Title", "Updated Content", LocalDateTime.now(), LocalDateTime.now().plusDays(1), List.of()));
+    }
+
+    @Test
+    @DisplayName("공지 수정 테스트 2. 존재하지 않는 공지 수정")
+    void testUpdateNotice_DoNotFoundNotice() {
+        when(noticeRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () ->  noticeService.updateNotice(2L, "Updated Title", "Updated Content", LocalDateTime.now(), LocalDateTime.now().plusDays(1), List.of()));
+    }
 }
