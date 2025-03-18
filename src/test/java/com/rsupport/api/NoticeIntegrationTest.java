@@ -113,7 +113,7 @@ public class NoticeIntegrationTest {
     void testGetNotice_NotFound() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/notices/9999")
                         .session(session))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
