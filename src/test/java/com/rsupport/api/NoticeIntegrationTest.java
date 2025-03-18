@@ -14,11 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -135,6 +137,71 @@ public class NoticeIntegrationTest {
     @DisplayName("공지 등록 API 테스트 2. 필수데이터 누락")
     void testCreateNotice_InvalidRequest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/notices")
+                        .param("title", "")
+                        .param("content", "")
+                        .param("startAt", "")
+                        .param("endAt", "")
+                        .session(session)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    @DisplayName("공지 수정 API 테스트 1. 수정 성공")
+    void testUpdateNotice_Success() throws Exception {
+        Notice notice = Notice.builder()
+                .title("Test Title")
+                .content("Test Content")
+                .author(userRepository.findById(1L).orElse(new User(1L, "admin")))
+                .startAt(LocalDateTime.now().minusDays(3))
+                .endAt(LocalDateTime.now().plusDays(3))
+                .attachments(new ArrayList<>())
+                .viewCount(0)
+                .build();
+
+        noticeRepository.save(notice);
+
+        MockMultipartFile file = new MockMultipartFile("files", "test.txt", "text/plain", "Test content".getBytes());
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/1")
+                        .file(file)
+                        .param("title", "Title")
+                        .param("content", "Content")
+                        .param("startAt", LocalDateTime.now().toString())
+                        .param("endAt", LocalDateTime.now().plusDays(1).toString())
+                        .session(session)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
+    }
+
+
+    @Test
+    @DisplayName("공지 수정 API 테스트 2. 빈 값이 들어와도 수정은 성공(기존값 사용)")
+    void testUpdateNotice_EmptyRequest_Success() throws Exception {
+        Notice notice = Notice.builder()
+                .title("Test Title")
+                .content("Test Content")
+                .author(userRepository.findById(1L).orElse(new User(1L, "admin")))
+                .startAt(LocalDateTime.now().minusDays(3))
+                .endAt(LocalDateTime.now().plusDays(3))
+                .attachments(new ArrayList<>())
+                .viewCount(0)
+                .build();
+
+        noticeRepository.save(notice);
+        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/1")
+                        .param("title", "")
+                        .param("content", "")
+                        .param("startAt", "")
+                        .param("endAt", "")
+                        .session(session)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("공지 수정 API 테스트 3. 잘못된 notice id")
+    void testUpdateNotice_NotFound() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/notices/9999")
                         .param("title", "")
                         .param("content", "")
                         .param("startAt", "")
