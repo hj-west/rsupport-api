@@ -109,7 +109,7 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
 
         // 첨부 파일 삭제
         notice.getAttachments().forEach(attachment -> {
