@@ -85,4 +85,15 @@ class NoticeController {
         noticeService.updateNotice(noticeId, request.getTitle(), request.getContent(), request.getStartAt(), request.getEndAt(), request.getFiles());
         return ResponseEntity.ok("공지사항 수정 성공");
     }
+
+    /**
+     * 공지사항 삭제 API
+     * @param noticeId 공지사항 id
+     * @return ResponseEntity<String>
+     */
+    @DeleteMapping(path = "/{noticeId}")
+    public ResponseEntity<String> deleteNotice(@PathVariable Long noticeId) {
+        noticeService.deleteNotice(noticeId);
+        return ResponseEntity.ok("공지사항 삭제 성공");
+    }
 }
