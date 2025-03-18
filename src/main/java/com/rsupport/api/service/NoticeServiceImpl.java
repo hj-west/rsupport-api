@@ -41,6 +41,11 @@ public class NoticeServiceImpl implements NoticeService {
 
     private static final String VIEW_KEY_PREFIX = "notice:view:";
 
+    private Long getCurrentUserId() {
+        return Optional.ofNullable((Long) session.getAttribute("userId"))
+                .orElseThrow(() -> new IllegalArgumentException("세션에서 사용자 정보를 찾을 수 없습니다."));
+    }
+
     @Override
     public Page<NoticeListResponseDto> getNotices(SearchType searchType, String keyword, LocalDateTime from, LocalDateTime to, Pageable pageable) {
         return noticeRepository.searchNotices(Optional.ofNullable(searchType).map(Enum::toString).orElse(null)
@@ -66,35 +71,22 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public void saveNotice(String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
-        Long userId = (Long) session.getAttribute("userId");
+        User user = userRepository.findById(getCurrentUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
 
-        if (userId == null) {
-            throw new IllegalArgumentException("세션에서 사용자 정보를 찾을 수 없습니다.");
-        }
-
-        User user = userRepository.findById(userId).orElse(null);
-
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
-        Notice notice = Notice.builder()
+        Notice notice = noticeRepository.save(Notice.builder()
                 .title(title)
                 .content(content)
                 .startAt(startAt)
                 .endAt(endAt)
                 .author(user)
                 .viewCount(0)
-                .build();
+                .build());
 
-        noticeRepository.save(notice);
-
-        if (files != null) {
+        if (files != null && !files.isEmpty()) {
             List<Attachment> attachments = files.stream()
-                    .map(file -> {
-                        return new Attachment(null, file.getOriginalFilename(), fileService.upload(file), notice);
-                    })
+                    .map(file -> new Attachment(null, file.getOriginalFilename(), fileService.upload(file), notice))
                     .collect(Collectors.toList());
-
             attachmentRepository.saveAll(attachments);
             notice.setAttachments(attachments);
         }
