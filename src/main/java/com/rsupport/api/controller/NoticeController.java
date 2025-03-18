@@ -25,6 +25,10 @@ import java.time.LocalDateTime;
 class NoticeController {
     private final NoticeService noticeService;
 
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
+    private static final String DEFAULT_SORT_FIELD = "createdAt";
+
     /**
      * 공지사할 목록 조회 API
      * @param searchType 검색 타입
@@ -41,9 +45,9 @@ class NoticeController {
                                                                   @RequestParam(required = false) String keyword,
                                                                   @RequestParam(required = false) LocalDateTime from,
                                                                   @RequestParam(required = false) LocalDateTime to,
-                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size,
-                                                                  @RequestParam(defaultValue = "createdAt") String sort,
+                                                                  @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+                                                                  @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
+                                                                  @RequestParam(defaultValue = DEFAULT_SORT_FIELD) String sort,
                                                                   @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         return ResponseEntity.ok(noticeService.getNotices(searchType, keyword, from, to, pageable));
