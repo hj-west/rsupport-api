@@ -3,6 +3,7 @@ package com.rsupport.api.dto;
 
 import com.rsupport.api.dto.validation.RegisterRequestValidationGroup;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,9 +22,9 @@ public class NoticeRequestDto {
     @NotBlank(groups = RegisterRequestValidationGroup.class)
     private String content;
 
-    @NotBlank(groups = RegisterRequestValidationGroup.class)
+    @NotNull(groups = RegisterRequestValidationGroup.class)
     private LocalDateTime startAt;
-    @NotBlank(groups = RegisterRequestValidationGroup.class)
+    @NotNull(groups = RegisterRequestValidationGroup.class)
     private LocalDateTime endAt;
 
     private Long authorId;
