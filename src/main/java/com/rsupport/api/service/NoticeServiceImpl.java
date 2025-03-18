@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,11 +68,14 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public void updateNotice(Long id, String title, String content, LocalDateTime startAt, LocalDateTime endAt, List<MultipartFile> files) {
         Notice notice = noticeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
-        notice.setTitle(title);
-        notice.setContent(content);
-        notice.setStartAt(startAt);
-        notice.setEndAt(endAt);
+
+        // 수정기능엔 @NotBlank 가 적용되지 않으므로 null체크를 통해 비어있으면 기존값으로 세팅되도록 설정
+        Optional.ofNullable(title).filter(s -> !title.isEmpty()).ifPresent(notice::setTitle);
+        Optional.ofNullable(content).filter(s -> !content.isEmpty()).ifPresent(notice::setContent);
+        Optional.ofNullable(startAt).ifPresent(notice::setStartAt);
+        Optional.ofNullable(endAt).ifPresent(notice::setEndAt);
         noticeRepository.save(notice);
+
         if (files != null) {
             // 기존 첨부파일 삭제
             attachmentRepository.deleteAll(notice.getAttachments());
