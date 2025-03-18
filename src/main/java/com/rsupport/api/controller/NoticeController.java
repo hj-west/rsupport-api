@@ -42,8 +42,9 @@ class NoticeController {
                                                                   @RequestParam(required = false) LocalDateTime to,
                                                                   @RequestParam(defaultValue = "0") int page,
                                                                   @RequestParam(defaultValue = "10") int size,
-                                                                  @RequestParam(defaultValue = "createdAt") String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sort));
+                                                                  @RequestParam(defaultValue = "createdAt") String sort,
+                                                                  @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         return ResponseEntity.ok(noticeService.getNotices(searchType, keyword, from, to, pageable));
     }
 
